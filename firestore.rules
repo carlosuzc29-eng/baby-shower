@@ -44,8 +44,8 @@ service cloud.firestore {
 
       // Subcolección 'claims' (regalos confirmados por invitados)
       match /claims/{claimId} {
-        // PRIVACIDAD: El público NO puede leer los claims. Solo los papás (dueño del evento)
-        allow read: if isEventOwner(eventId);
+        // Lectura pública de claims permitida para mostrar quién reservó cada regalo
+        allow read: if true;
 
         // Crear claim: Un invitado puede registrar su regalo
         // Debe incluir guestName (mínimo 2 caracteres), giftId, quantity (mínimo 1), giftName y createdAt

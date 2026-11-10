@@ -6,7 +6,7 @@ import { AdminLoginPage } from './pages/AdminLoginPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 
 export const App: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { isAdminAuthenticated } = useAuth();
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
   // Listener para sincronizar navegación sencilla sin recargar página
@@ -53,7 +53,7 @@ export const App: React.FC = () => {
 
       {/* Enrutamiento amigable */}
       {currentPath.startsWith('/admin') ? (
-        currentUser ? (
+        isAdminAuthenticated ? (
           <AdminDashboardPage eventId={eventId} />
         ) : (
           <AdminLoginPage onSuccess={() => navigateTo('/admin')} />

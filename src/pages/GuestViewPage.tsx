@@ -246,7 +246,7 @@ export const GuestViewPage: React.FC<GuestViewPageProps> = ({ eventId }) => {
         />
 
         {/* Footer delicado */}
-        <footer className="text-center text-xs text-[#556E88] mt-14 pb-8 px-4 select-none space-y-1.5">
+        <footer className="text-center text-xs text-[#556E88] mt-14 pb-8 px-4 select-none space-y-2">
           <p className="font-medium">Hecho con amor para nuestro Baby Shower</p>
           <p className="text-[11px] text-[#718BA5] tracking-wide">
             Design by{' '}
@@ -259,6 +259,14 @@ export const GuestViewPage: React.FC<GuestViewPageProps> = ({ eventId }) => {
               @orlog.code
             </a>
           </p>
+          <div className="pt-2">
+            <a
+              href="/admin"
+              className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#5880A4] hover:text-[#E2650F] py-1.5 px-3.5 rounded-full bg-white/80 border border-[#D8E6F3] shadow-2xs transition-all hover:bg-white"
+            >
+              <span>🔒 Panel de los Papás</span>
+            </a>
+          </div>
         </footer>
       </div>
     </div>
