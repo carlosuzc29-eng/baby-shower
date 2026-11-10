@@ -17,9 +17,9 @@ export const EventHero: React.FC<EventHeroProps> = ({ event }) => {
         <span>Baby Shower · Lista de regalos</span>
       </div>
 
-      {/* 2. "Oh Baby" en Yellowtail con degradado sunset cálido y brillo natural */}
+      {/* 2. "Bebé en camino" en Yellowtail con degradado sunset cálido y brillo natural */}
       <div
-        className="font-script text-[clamp(3.6rem,8.5vw,6.2rem)] leading-[0.98] select-none mb-2 tracking-wide"
+        className="font-script text-[clamp(2.8rem,7vw,4.8rem)] leading-[1.05] select-none mb-2 tracking-wide"
         style={{
           background: 'linear-gradient(135deg, #F9A030 0%, #F7931E 45%, #E2650F 100%)',
           WebkitBackgroundClip: 'text',
@@ -27,13 +27,17 @@ export const EventHero: React.FC<EventHeroProps> = ({ event }) => {
           filter: 'drop-shadow(0 4px 18px rgba(247, 147, 30, 0.28))',
         }}
       >
-        Oh Baby
+        Bebé en camino
       </div>
 
-      {/* 3. Título del evento en Fredoka 600 */}
-      <h1 className="font-heading font-semibold text-2xl sm:text-4xl text-[#1C2D42] tracking-tight leading-tight mb-2">
-        {event.babyName ? event.babyName : "¡Nuestro Bebé en camino!"}
-      </h1>
+      {/* 3. Título del evento / nombre del bebé si es específico */}
+      {event.babyName &&
+        !event.babyName.toLowerCase().includes('bebé en camino') &&
+        !event.babyName.toLowerCase().includes('bebe en camino') && (
+          <h1 className="font-heading font-semibold text-2xl sm:text-4xl text-[#1C2D42] tracking-tight leading-tight mb-2">
+            {event.babyName}
+          </h1>
+        )}
 
       {/* 4. "Con amor, {parentsNames}" */}
       <p className="text-sm sm:text-base font-medium text-[#556E88] mb-3">

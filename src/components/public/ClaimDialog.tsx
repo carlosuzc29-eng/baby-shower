@@ -109,24 +109,16 @@ export const ClaimDialog: React.FC<ClaimDialogProps> = ({
               )}
             </div>
 
-            {/* Stepper de cantidad: Solo si queda más de 1 disponible */}
-            {gift.quantityRemaining > 1 ? (
-              <div className="py-2">
-                <Stepper
-                  value={quantity}
-                  min={1}
-                  max={gift.quantityRemaining}
-                  onChange={setQuantity}
-                  label="¿Cuántas unidades deseas regalar?"
-                />
-              </div>
-            ) : (
-              <div className="text-center py-1">
-                <span className="text-xs text-theme-muted bg-theme-secondary-light px-3 py-1 rounded-full font-bold">
-                  Regalarás la última unidad disponible 🎁
-                </span>
-              </div>
-            )}
+            {/* Stepper de cantidad: Ahora libre para que regalen cuantas unidades deseen */}
+            <div className="py-2">
+              <Stepper
+                value={quantity}
+                min={1}
+                max={99}
+                onChange={setQuantity}
+                label="¿Cuántas unidades deseas regalar?"
+              />
+            </div>
 
             {/* Mensaje opcional para los papás */}
             <div>

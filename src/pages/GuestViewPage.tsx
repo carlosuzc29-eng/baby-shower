@@ -3,11 +3,8 @@ import {
   collection,
   doc,
   onSnapshot,
-  runTransaction,
   serverTimestamp,
-  query,
-  where,
-  orderBy
+  setDoc
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../config/firebase';
 import { BabyShowerEvent, Gift } from '../types';
@@ -86,16 +83,13 @@ export const GuestViewPage: React.FC<GuestViewPageProps> = ({ eventId }) => {
     return unsub;
   }, [eventId, setTheme]);
 
-  // 2. Escuchar solo regalos con quantityRemaining > 0 en tiempo real
+  // 2. Escuchar todos los regalos en tiempo real (modo ilimitado: nunca se ocultan ni agotan)
   useEffect(() => {
     if (!eventId || !isFirebaseConfigured) return;
     const giftsRef = collection(db, 'events', eventId, 'gifts');
 
-    // Consulta en tiempo real: cuando un regalo llega a 0 sale automáticamente de esta lista
-    const q = query(giftsRef, where('quantityRemaining', '>', 0), orderBy('quantityRemaining', 'desc'));
-    
     const unsub = onSnapshot(
-      q,
+      giftsRef,
       (snapshot) => {
         const list: Gift[] = [];
         snapshot.forEach((d) => {
@@ -149,7 +143,7 @@ export const GuestViewPage: React.FC<GuestViewPageProps> = ({ eventId }) => {
     return counts;
   }, [gifts]);
 
-  // 4. LÓGICA CRÍTICA: Descuento atómico con runTransaction
+  // 4. LÓGICA: Registro del regalo en claims (modo ilimitado: los productos nunca se agotan)
   const handleConfirmClaim = async (guestName: string, quantity: number, message: string) => {
     if (!selectedGiftForClaim || !event) return;
 
@@ -159,57 +153,16 @@ export const GuestViewPage: React.FC<GuestViewPageProps> = ({ eventId }) => {
 
     try {
       if (isFirebaseConfigured) {
-        await runTransaction(db, async (transaction) => {
-          const giftRef = doc(db, 'events', event.id, 'gifts', giftId);
-          const giftSnap = await transaction.get(giftRef);
-
-          if (!giftSnap.exists()) {
-            throw new Error('NOT_FOUND');
-          }
-
-          const currentData = giftSnap.data();
-          const currentRemaining = currentData.quantityRemaining ?? 0;
-
-          // Validar que la cantidad solicitada aún esté disponible
-          if (quantity > currentRemaining || currentRemaining <= 0) {
-            throw new Error('OUT_OF_STOCK');
-          }
-
-          // Restar unidades
-          const newRemaining = currentRemaining - quantity;
-          transaction.update(giftRef, {
-            quantityRemaining: newRemaining,
-          });
-
-          // Crear documento en la subcolección claims dentro de la misma transacción atómica
-          const newClaimRef = doc(collection(db, 'events', event.id, 'claims'));
-          transaction.set(newClaimRef, {
-            giftId,
-            giftName,
-            guestName,
-            quantity,
-            message: message || '',
-            createdAt: serverTimestamp(),
-          });
+        // En Firestore: registramos el reclamo en la subcolección claims
+        const newClaimRef = doc(collection(db, 'events', event.id, 'claims'));
+        await setDoc(newClaimRef, {
+          giftId,
+          giftName,
+          guestName,
+          quantity,
+          message: message || '',
+          createdAt: serverTimestamp(),
         });
-      } else {
-        // Modo demostración local / offline instantáneo si aún no se ha enlazado el proyecto de Firebase
-        setGifts((prevGifts) => {
-          return prevGifts
-            .map((g) => {
-              if (g.id === giftId) {
-                const newRem = Math.max(0, g.quantityRemaining - quantity);
-                return { ...g, quantityRemaining: newRem };
-              }
-              return g;
-            })
-            .filter((g) => g.quantityRemaining > 0);
-        });
-
-        setAllGiftsCount((prev) => ({
-          ...prev,
-          remaining: Math.max(0, prev.remaining - quantity),
-        }));
       }
 
       // Transacción exitosa
@@ -222,13 +175,8 @@ export const GuestViewPage: React.FC<GuestViewPageProps> = ({ eventId }) => {
         quantity,
       });
     } catch (err: any) {
-      console.error('Error en la transacción de claim:', err);
-      if (err.message === 'OUT_OF_STOCK') {
-        toast.error('¡Uy! Alguien acaba de elegir este regalo justo ahora 💛');
-        setSelectedGiftForClaim(null);
-      } else {
-        toast.error('Ocurrió un problema de conexión al apartar el regalo. Intenta de nuevo.');
-      }
+      console.error('Error al registrar el regalo:', err);
+      toast.error('Ocurrió un problema de conexión al apartar el regalo. Intenta de nuevo.');
     } finally {
       setIsClaimSubmitting(false);
     }
