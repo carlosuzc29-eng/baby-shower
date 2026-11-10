@@ -72,7 +72,7 @@ export const GiftGrid: React.FC<GiftGridProps> = ({ gifts, onClaim, isLoading })
                 ease: [0.23, 1, 0.32, 1],
               }}
             >
-              <GiftCard gift={gift} onClaim={onClaim} />
+              <GiftCard gift={gift} onClaim={onClaim} priority={index < 6} />
             </motion.div>
           ))}
         </AnimatePresence>

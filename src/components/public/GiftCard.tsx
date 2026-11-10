@@ -7,10 +7,23 @@ import { ExternalLink, Star } from 'lucide-react';
 interface GiftCardProps {
   gift: Gift;
   onClaim: (gift: Gift) => void;
+  priority?: boolean;
 }
 
-export const GiftCard: React.FC<GiftCardProps> = ({ gift, onClaim }) => {
+export const GiftCard: React.FC<GiftCardProps> = ({ gift, onClaim, priority = false }) => {
   const [imageError, setImageError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+
+  const handleImageError = () => {
+    if (retryCount < 2) {
+      setTimeout(() => {
+        setRetryCount((prev) => prev + 1);
+      }, 800);
+    } else {
+      setImageError(true);
+    }
+  };
 
   return (
     <div
@@ -22,13 +35,25 @@ export const GiftCard: React.FC<GiftCardProps> = ({ gift, onClaim }) => {
       <div>
         {/* Imagen del regalo (aspect-[4/3] object-cover) */}
         <div className="relative w-full aspect-[4/3] bg-[#EBF3FA] flex items-center justify-center overflow-hidden border-b border-[#D8E6F3]">
+          {/* Skeleton animado mientras carga la imagen */}
+          {gift.imageUrl && !imageError && !isLoaded && (
+            <div className="absolute inset-0 bg-gradient-to-r from-[#EBF3FA] via-[#F3F8FC] to-[#EBF3FA] animate-pulse" />
+          )}
+
           {gift.imageUrl && !imageError ? (
             <img
+              key={`${gift.imageUrl}-${retryCount}`}
               src={gift.imageUrl}
               alt={gift.name}
-              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-              loading="lazy"
-              onError={() => setImageError(true)}
+              className={`w-full h-full object-cover transition-all duration-500 hover:scale-105 ${
+                isLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+              loading={priority ? 'eager' : 'lazy'}
+              decoding="async"
+              // @ts-expect-error fetchpriority is a modern HTML attribute
+              fetchpriority={priority ? 'high' : 'auto'}
+              onLoad={() => setIsLoaded(true)}
+              onError={handleImageError}
             />
           ) : (
             <div className="flex flex-col items-center justify-center gap-2 text-[#556E88] p-4">
