@@ -11,7 +11,7 @@ service cloud.firestore {
     // Reglas para la colección principal 'events'
     match /events/{eventId} {
       // Público: cualquiera puede leer los detalles del evento (para ver portada, nombres, etc.)
-      allow read: true;
+      allow read: if true;
       
       // Solo usuarios autenticados pueden crear eventos si se asignan como ownerUid
       allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;
@@ -22,7 +22,7 @@ service cloud.firestore {
       // Subcolección 'gifts' (regalos del evento)
       match /gifts/{giftId} {
         // Público: cualquiera puede leer la lista de regalos
-        allow read: true;
+        allow read: if true;
 
         // Solo el dueño puede agregar nuevos regalos o eliminarlos
         allow create, delete: if isEventOwner(eventId);
